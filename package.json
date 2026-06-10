@@ -1,0 +1,188 @@
+{
+  "name": "commitsmith",
+  "displayName": "Commitsmith",
+  "description": "Forge Conventional Commits messages from your git diff with one click — using any OpenAI-compatible API or a fully local Ollama model.",
+  "version": "0.1.0",
+  "publisher": "lazarev",
+  "license": "Apache-2.0",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "ollama",
+    "openai",
+    "conventional commits"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lazarevtill/Commitsmith.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lazarevtill/Commitsmith/issues"
+  },
+  "homepage": "https://github.com/lazarevtill/Commitsmith#readme",
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "commitsmith.generate",
+        "title": "Generate Commit Message",
+        "category": "Commitsmith",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "commitsmith.setApiKey",
+        "title": "Set API Key",
+        "category": "Commitsmith"
+      },
+      {
+        "command": "commitsmith.clearApiKey",
+        "title": "Clear API Key",
+        "category": "Commitsmith"
+      },
+      {
+        "command": "commitsmith.selectProvider",
+        "title": "Select API Provider",
+        "category": "Commitsmith"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "commitsmith.generate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "commitsmith.selectProvider",
+          "group": "1_commitsmith@1",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Commitsmith",
+      "properties": {
+        "commitsmith.api": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "ollama"
+          ],
+          "enumDescriptions": [
+            "OpenAI-compatible. Calls {baseUrl}/chat/completions (OpenAI, OpenRouter, LM Studio, Open WebUI). Requires an API key for remote endpoints.",
+            "Ollama. Calls {baseUrl}/api/chat so num_ctx can be set (avoids silent prompt truncation). No API key required."
+          ],
+          "default": "openai",
+          "markdownDescription": "API protocol. `openai` calls `{baseUrl}/chat/completions` (OpenAI, OpenRouter, LM Studio, Open WebUI). `ollama` calls `{baseUrl}/api/chat` so the context window (`num_ctx`) can be set — required to avoid silent prompt truncation on Ollama.\n\nTip: run **Commitsmith: Select API Provider** from the Command Palette or the Source Control `⋯` menu to switch quickly. Ollama needs no API key."
+        },
+        "commitsmith.baseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "markdownDescription": "Base URL. OpenAI: `https://api.openai.com/v1`. Ollama: `http://localhost:11434`. Open WebUI: `https://your-host/api`."
+        },
+        "commitsmith.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "markdownDescription": "Model name. Hosted: `gpt-4o-mini`. Local (Ollama): a small code model like `qwen2.5-coder:3b` (latency) or `:7b` (quality)."
+        },
+        "commitsmith.temperature": {
+          "type": "number",
+          "default": 0.15,
+          "description": "Sampling temperature. Low values give stable Conventional Commits output."
+        },
+        "commitsmith.maxDiffTokens": {
+          "type": "number",
+          "default": 3500,
+          "description": "Token budget for the diff context in the single-call path. The diff is truncated (whole hunks, per-file proportional) to fit."
+        },
+        "commitsmith.largeDiffThreshold": {
+          "type": "number",
+          "default": 7000,
+          "description": "Post-filter diff token count above which the two-pass (summarize-then-synthesize) strategy is used."
+        },
+        "commitsmith.maxTokens": {
+          "type": "number",
+          "default": 200,
+          "description": "Maximum output tokens for the generated message."
+        },
+        "commitsmith.ollamaNumCtx": {
+          "type": "number",
+          "default": 8192,
+          "description": "Context window (num_ctx) for Ollama /api/chat calls. Prevents Ollama's 2048-token default from silently truncating the prompt."
+        },
+        "commitsmith.requestTimeoutMs": {
+          "type": "number",
+          "default": 90000,
+          "description": "Request timeout in milliseconds. Generous by default to absorb Ollama cold-start model loading."
+        },
+        "commitsmith.systemPrompt": {
+          "type": "string",
+          "editPresentation": "multilineText",
+          "default": "",
+          "description": "Override the default system prompt. Leave empty to use the built-in Conventional Commits prompt."
+        },
+        "commitsmith.ignoreGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "*.lock",
+            "package-lock.json",
+            "yarn.lock",
+            "pnpm-lock.yaml",
+            "*.min.*",
+            "dist/**",
+            "build/**",
+            "*.map"
+          ],
+          "description": "Files whose diff body is dropped from the prompt (still listed in the change summary). Reduces noise and token cost."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "icon": "node scripts/generate-icon.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "integration": "node scripts/integration.mjs",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.28.0",
+    "eslint": "^9.15.0",
+    "globals": "^15.12.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.15.0",
+    "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "js-tiktoken": "^1.0.15"
+  }
+}
