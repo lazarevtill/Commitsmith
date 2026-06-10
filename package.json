@@ -3,7 +3,7 @@
   "displayName": "Commitsmith",
   "description": "Forge Conventional Commits messages from your git diff with one click — using any OpenAI-compatible API or a fully local Ollama model.",
   "version": "0.1.0",
-  "publisher": "lazarev",
+  "publisher": "lazarevtill",
   "license": "Apache-2.0",
   "icon": "icon.png",
   "engines": {
