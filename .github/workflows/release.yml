@@ -21,7 +21,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      # `npm install` (not `npm ci`): the lockfile is generated on Windows and
+      # npm omits some Linux-only optional deps (@emnapi/* via rollup's wasm
+      # fallback), which makes the strict `npm ci` fail on the Linux runner.
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
@@ -41,7 +44,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
 
       - name: Detect version change
         id: ver
