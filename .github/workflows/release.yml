@@ -36,6 +36,9 @@ jobs:
     # Only on a real push to main — never on PRs (so secrets never reach forks).
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,13 +69,15 @@ jobs:
         if: steps.ver.outputs.changed == 'true'
         run: npm run package
 
+      # Each registry publishes only if its token secret is configured, so you
+      # can enable Open VSX and the VS Marketplace independently.
       - name: Publish to Open VSX
-        if: steps.ver.outputs.changed == 'true'
-        run: npx --yes ovsx publish "commitsmith-${{ steps.ver.outputs.new }}.vsix" -p "${{ secrets.OVSX_PAT }}"
+        if: steps.ver.outputs.changed == 'true' && env.OVSX_PAT != ''
+        run: npx --yes ovsx publish "commitsmith-${{ steps.ver.outputs.new }}.vsix" -p "$OVSX_PAT"
 
       - name: Publish to VS Code Marketplace
-        if: steps.ver.outputs.changed == 'true'
-        run: npx vsce publish --packagePath "commitsmith-${{ steps.ver.outputs.new }}.vsix" -p "${{ secrets.VSCE_PAT }}"
+        if: steps.ver.outputs.changed == 'true' && env.VSCE_PAT != ''
+        run: npx vsce publish --packagePath "commitsmith-${{ steps.ver.outputs.new }}.vsix" -p "$VSCE_PAT"
 
       - name: Create GitHub release
         if: steps.ver.outputs.changed == 'true'
