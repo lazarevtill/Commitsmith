@@ -57,6 +57,31 @@ the environment variables it reads. It is **not** required for unit-level change
 This project follows [Conventional Commits](https://www.conventionalcommits.org/).
 (You can dogfood the extension to write them.)
 
+## Releasing
+
+Releases are automated by `.github/workflows/release.yml`. Every push and PR to
+`main` runs lint + typecheck + tests + build. A release happens **only when the
+`version` in `package.json` changes** on `main`:
+
+1. Bump `version` in `package.json` (e.g. `0.1.0` → `0.1.1`).
+2. Add a matching entry to `CHANGELOG.md`.
+3. Commit and push/merge to `main`.
+
+CI then packages the VSIX, publishes it to **Open VSX** and the **VS Code
+Marketplace**, tags `v<version>`, and creates a GitHub Release with the `.vsix`
+attached. Commits that don't change the version just run the checks.
+
+### Required repository secrets
+
+Set these under **Settings → Secrets and variables → Actions**:
+
+| Secret | What it is |
+|---|---|
+| `OVSX_PAT` | Open VSX access token (open-vsx.org → Settings → Access Tokens) |
+| `VSCE_PAT` | Azure DevOps PAT with **Marketplace → Manage** scope, "All accessible organizations" |
+
+`GITHUB_TOKEN` is provided automatically for the release/tag step.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the

@@ -1,0 +1,82 @@
+# Verifies every push/PR, and auto-publishes when package.json's version changes
+# on main. Bump the version (and CHANGELOG), merge to main → it ships everywhere.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write # needed to create tags + GitHub releases
+
+jobs:
+  verify:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  publish:
+    name: Publish on version bump
+    needs: verify
+    # Only on a real push to main — never on PRs (so secrets never reach forks).
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # need the previous commit to diff the version
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Detect version change
+        id: ver
+        shell: bash
+        run: |
+          NEW=$(node -p "require('./package.json').version")
+          git show HEAD~1:package.json > /tmp/old.json 2>/dev/null || echo '{}' > /tmp/old.json
+          OLD=$(node -p "require('/tmp/old.json').version || 'none'")
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" != "$OLD" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Version bumped $OLD -> $NEW; will publish."
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Version unchanged ($NEW); skipping publish."
+          fi
+
+      - name: Package VSIX
+        if: steps.ver.outputs.changed == 'true'
+        run: npm run package
+
+      - name: Publish to Open VSX
+        if: steps.ver.outputs.changed == 'true'
+        run: npx --yes ovsx publish "commitsmith-${{ steps.ver.outputs.new }}.vsix" -p "${{ secrets.OVSX_PAT }}"
+
+      - name: Publish to VS Code Marketplace
+        if: steps.ver.outputs.changed == 'true'
+        run: npx vsce publish --packagePath "commitsmith-${{ steps.ver.outputs.new }}.vsix" -p "${{ secrets.VSCE_PAT }}"
+
+      - name: Create GitHub release
+        if: steps.ver.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.ver.outputs.new }}" \
+            "commitsmith-${{ steps.ver.outputs.new }}.vsix" \
+            --title "Commitsmith v${{ steps.ver.outputs.new }}" \
+            --generate-notes

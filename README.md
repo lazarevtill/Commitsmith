@@ -6,6 +6,11 @@ local Ollama model**. No telemetry, no server, no code indexing.
 
 Works in **VS Code** and **Cursor**.
 
+[![Release](https://github.com/lazarevtill/Commitsmith/actions/workflows/release.yml/badge.svg)](https://github.com/lazarevtill/Commitsmith/actions/workflows/release.yml)
+[![Open VSX](https://img.shields.io/open-vsx/v/lazarevtill/commitsmith?label=Open%20VSX)](https://open-vsx.org/extension/lazarevtill/commitsmith)
+[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/lazarevtill.commitsmith?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=lazarevtill.commitsmith)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 ---
 
 ## Features
