@@ -14,6 +14,8 @@ import type { FileChange, GenerationConfig } from "../src/types";
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST ?? "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "llama3.2:latest";
+const LLAMACPP_HOST = process.env.LLAMACPP_HOST ?? "http://localhost:8080/v1";
+const LLAMACPP_MODEL = process.env.LLAMACPP_MODEL ?? "default";
 const OPENAI_BASE = process.env.OPENAI_BASE ?? "https://api.openai.com/v1";
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 const OPENAI_KEY = process.env.OPENAI_KEY ?? "";
@@ -46,6 +48,16 @@ const ollamaConfig: GenerationConfig = {
   baseUrl: OLLAMA_HOST,
   model: OLLAMA_MODEL,
   apiKey: "ollama",
+};
+
+const llamaCppConfig: GenerationConfig = {
+  ...baseConfig(),
+  api: "llama.cpp",
+  baseUrl: LLAMACPP_HOST,
+  model: LLAMACPP_MODEL,
+  // No dummy key — buildRequest correctly omits Authorization for llama.cpp
+  // when the key is empty, matching what resolveConfig produces locally.
+  apiKey: "",
 };
 
 const openaiConfig: GenerationConfig = {
@@ -196,6 +208,20 @@ async function main(): Promise<void> {
         }),
       );
     }
+  }
+
+  // --- llama.cpp single-pass ---
+  const llamaCppUp = await reachable(`${LLAMACPP_HOST}/models`);
+  if (!llamaCppUp) {
+    outcomes.push(skip(`llama.cpp single-pass`, `llama.cpp not reachable at ${LLAMACPP_HOST}`));
+  } else {
+    outcomes.push(
+      await run(`llama.cpp single-pass (${LLAMACPP_MODEL} @ ${LLAMACPP_HOST})`, async () => {
+        const r = await generateMessage(smallChange, llamaCppConfig);
+        if (r.strategy !== "single") throw new Error(`expected single, got ${r.strategy}`);
+        return r.message;
+      }),
+    );
   }
 
   // --- Ollama two-pass (large diff) ---

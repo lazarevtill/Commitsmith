@@ -24,6 +24,12 @@ describe("needsApiKey", () => {
     expect(needsApiKey("ollama", "https://ollama.example.com")).toBe(false);
   });
 
+  it("never requires a key for llama.cpp, regardless of host", () => {
+    expect(needsApiKey("llama.cpp", "http://localhost:8080/v1")).toBe(false);
+    expect(needsApiKey("llama.cpp", "http://192.168.1.10:8080/v1")).toBe(false);
+    expect(needsApiKey("llama.cpp", "https://llama.example.com/v1")).toBe(false);
+  });
+
   it("does not require a key for a local OpenAI-compatible endpoint", () => {
     expect(needsApiKey("openai", "http://localhost:1234/v1")).toBe(false);
     expect(needsApiKey("openai", "http://192.168.1.10:11434/v1")).toBe(false);

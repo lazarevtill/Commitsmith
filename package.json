@@ -1,8 +1,8 @@
 {
   "name": "commitsmith",
   "displayName": "Commitsmith",
-  "description": "Forge Conventional Commits messages from your git diff with one click — using any OpenAI-compatible API or a fully local Ollama model.",
-  "version": "0.1.1",
+  "description": "Forge Conventional Commits messages from your git diff with one click — using any OpenAI-compatible API, a local Ollama model, or llama.cpp.",
+  "version": "0.1.2",
   "publisher": "lazarevtill",
   "license": "Apache-2.0",
   "icon": "icon.png",
@@ -83,24 +83,26 @@
           "type": "string",
           "enum": [
             "openai",
-            "ollama"
+            "ollama",
+            "llama.cpp"
           ],
           "enumDescriptions": [
             "OpenAI-compatible. Calls {baseUrl}/chat/completions (OpenAI, OpenRouter, LM Studio, Open WebUI). Requires an API key for remote endpoints.",
-            "Ollama. Calls {baseUrl}/api/chat so num_ctx can be set (avoids silent prompt truncation). No API key required."
+            "Ollama. Calls {baseUrl}/api/chat so num_ctx can be set (avoids silent prompt truncation). No API key required.",
+            "llama.cpp. Calls {baseUrl}/v1/chat/completions (OpenAI-compatible). No API key required. Run `llama-server -m your-model.gguf --port 8080` and set baseUrl to http://localhost:8080/v1."
           ],
           "default": "openai",
-          "markdownDescription": "API protocol. `openai` calls `{baseUrl}/chat/completions` (OpenAI, OpenRouter, LM Studio, Open WebUI). `ollama` calls `{baseUrl}/api/chat` so the context window (`num_ctx`) can be set — required to avoid silent prompt truncation on Ollama.\n\nTip: run **Commitsmith: Select API Provider** from the Command Palette or the Source Control `⋯` menu to switch quickly. Ollama needs no API key."
+          "markdownDescription": "API protocol. `openai` calls `{baseUrl}/chat/completions` (OpenAI, OpenRouter, LM Studio, Open WebUI). `ollama` calls `{baseUrl}/api/chat` so the context window (`num_ctx`) can be set — required to avoid silent prompt truncation on Ollama. `llama.cpp` calls `{baseUrl}/v1/chat/completions` (OpenAI-compatible).\n\nTip: run **Commitsmith: Select API Provider** from the Command Palette or the Source Control `⋯` menu to switch quickly. Ollama and llama.cpp need no API key."
         },
         "commitsmith.baseUrl": {
           "type": "string",
           "default": "https://api.openai.com/v1",
-          "markdownDescription": "Base URL. OpenAI: `https://api.openai.com/v1`. Ollama: `http://localhost:11434`. Open WebUI: `https://your-host/api`."
+          "markdownDescription": "Base URL. OpenAI: `https://api.openai.com/v1`. Ollama: `http://localhost:11434`. llama.cpp: `http://localhost:8080/v1`. Open WebUI: `https://your-host/api`."
         },
         "commitsmith.model": {
           "type": "string",
           "default": "gpt-4o-mini",
-          "markdownDescription": "Model name. Hosted: `gpt-4o-mini`. Local (Ollama): a small code model like `qwen2.5-coder:3b` (latency) or `:7b` (quality)."
+          "markdownDescription": "Model name. Hosted: `gpt-4o-mini`. Local (Ollama): a small code model like `qwen2.5-coder:3b` (latency) or `:7b` (quality). llama.cpp: the model name the server is running, or `default`."
         },
         "commitsmith.temperature": {
           "type": "number",
@@ -125,7 +127,7 @@
         "commitsmith.ollamaNumCtx": {
           "type": "number",
           "default": 8192,
-          "description": "Context window (num_ctx) for Ollama /api/chat calls. Prevents Ollama's 2048-token default from silently truncating the prompt."
+          "description": "Context window (num_ctx) for Ollama /api/chat calls. Only used for Ollama; prevents Ollama's 2048-token default from silently truncating the prompt."
         },
         "commitsmith.requestTimeoutMs": {
           "type": "number",
