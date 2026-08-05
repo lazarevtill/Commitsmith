@@ -97,12 +97,12 @@
         "commitsmith.baseUrl": {
           "type": "string",
           "default": "https://api.openai.com/v1",
-          "markdownDescription": "Base URL. OpenAI: `https://api.openai.com/v1`. Ollama: `http://localhost:11434`. Open WebUI: `https://your-host/api`."
+          "markdownDescription": "Base URL. OpenAI: `https://api.openai.com/v1`. Ollama: `http://localhost:11434`. llama.cpp: `http://localhost:8080/v1`. Open WebUI: `https://your-host/api`."
         },
         "commitsmith.model": {
           "type": "string",
           "default": "gpt-4o-mini",
-          "markdownDescription": "Model name. Hosted: `gpt-4o-mini`. Local (Ollama): a small code model like `qwen2.5-coder:3b` (latency) or `:7b` (quality)."
+          "markdownDescription": "Model name. Hosted: `gpt-4o-mini`. Local (Ollama): a small code model like `qwen2.5-coder:3b` (latency) or `:7b` (quality). llama.cpp: the model name the server is running, or `default`."
         },
         "commitsmith.temperature": {
           "type": "number",
@@ -127,7 +127,7 @@
         "commitsmith.ollamaNumCtx": {
           "type": "number",
           "default": 8192,
-          "description": "Context window (num_ctx) for Ollama /api/chat calls. Prevents Ollama's 2048-token default from silently truncating the prompt."
+          "description": "Context window (num_ctx) for Ollama /api/chat calls. Only used for Ollama; prevents Ollama's 2048-token default from silently truncating the prompt."
         },
         "commitsmith.requestTimeoutMs": {
           "type": "number",

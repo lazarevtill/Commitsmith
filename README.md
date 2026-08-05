@@ -121,7 +121,7 @@ For Open WebUI the base URL is `https://your-host/api`. Local OpenAI-compatible 
 ## Commands
 
 - **Commitsmith: Generate Commit Message** — also the ✨ Source Control button.
-- **Commitsmith: Select API Provider** — pick Ollama or OpenAI-compatible (dropdown).
+- **Commitsmith: Select API Provider** — pick Ollama, llama.cpp, or OpenAI-compatible (dropdown).
 - **Commitsmith: Set API Key** / **Clear API Key**.
 
 ## Development
@@ -146,6 +146,9 @@ unreachable:
 ```bash
 # Ollama
 OLLAMA_HOST=http://localhost:11434 OLLAMA_MODEL=llama3.2 npm run integration
+
+# llama.cpp (test runs only when LLAMACPP_HOST is set)
+LLAMACPP_HOST=http://localhost:8080/v1 LLAMACPP_MODEL=default npm run integration
 
 # OpenAI-compatible (test runs only when OPENAI_KEY is set)
 OPENAI_BASE=https://api.openai.com/v1 OPENAI_MODEL=gpt-4o-mini OPENAI_KEY=sk-... npm run integration
