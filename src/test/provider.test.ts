@@ -70,12 +70,17 @@ describe("buildRequest", () => {
     expect((plan.body as any).options.num_predict).toBe(4096);
   });
 
-  it("targets /chat/completions with max_tokens for llama.cpp (same as openai)", () => {
-    const plan = buildRequest({ ...base, api: "llama.cpp", baseUrl: "http://localhost:8080/v1" });
+  it("targets /chat/completions for llama.cpp without auth by default", () => {
+    const plan = buildRequest({ ...base, api: "llama.cpp", baseUrl: "http://localhost:8080/v1", apiKey: "" });
     expect(plan.url).toBe("http://localhost:8080/v1/chat/completions");
     expect(plan.headers.Authorization).toBeUndefined();
     expect((plan.body as any).max_tokens).toBe(200);
     expect((plan.body as any).options).toBeUndefined();
+  });
+
+  it("sends Authorization for llama.cpp when apiKey is set", () => {
+    const plan = buildRequest({ ...base, api: "llama.cpp", baseUrl: "http://localhost:8080/v1", apiKey: "llama-key-123" });
+    expect(plan.headers.Authorization).toBe("Bearer llama-key-123");
   });
 
   it("trims trailing slashes from the base URL", () => {

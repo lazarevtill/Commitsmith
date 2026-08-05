@@ -88,9 +88,9 @@ interface RequestOverrides {
 /** Build the endpoint URL, headers, and body for the configured backend. */
 export function buildRequest(params: CallParams, overrides: RequestOverrides = {}): RequestPlan {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  // Only remote OpenAI-compatible endpoints need an Authorization header.
-  // Ollama and llama.cpp are local runtimes with no auth.
-  if (params.api === "openai" && params.apiKey) {
+  // Send Authorization header when an API key is configured.
+  // Ollama never uses auth, but llama.cpp and OpenAI-compatible endpoints may.
+  if (params.apiKey && params.api !== "ollama") {
     headers.Authorization = `Bearer ${params.apiKey}`;
   }
   const predict = overrides.numPredict ?? params.maxTokens;
