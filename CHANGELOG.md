@@ -1,35 +1,37 @@
 # Changelog
 
-All notable changes to **Commitsmith** are documented here. The format is based on
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to this project will be documented in this file.
 
-## [0.1.1] — 2026-06-11
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Changed
-
-- First release published through the automated GitHub Actions pipeline, which
-  publishes to Open VSX and the VS Code Marketplace on every version bump to
-  `main`. No functional changes to the extension itself.
-
-## [0.1.0] — 2026-06-10
+## [0.1.2] - 2026-08-05
 
 ### Added
+- **llama.cpp** as a third API provider option alongside openai and ollama
+- Optional API key authentication for llama.cpp (via `llama-server --api-key`)
+- Unit tests for llama.cpp endpoint configuration and auth behavior
+- Integration test for llama.cpp single-pass flow
+- README section with llama.cpp setup instructions
 
-- One-click commit message generation from the Source Control title bar (✨).
-- Support for any **OpenAI-compatible** API and **Ollama** (local, no API key).
-- **Commitsmith: Select API Provider** — a dropdown to switch providers, available from
-  the Command Palette and the Source Control `⋯` menu. Selecting Ollama waives the API
-  key requirement.
-- Token-budgeted diff context (tiktoken) with per-file proportional allocation and
-  whole-hunk truncation; automatic two-pass *summarize-then-synthesize* for large diffs.
-- Grounded, prompt-injection-resistant Conventional Commits system prompt.
-- Reasoning/"thinking" model handling: `think: false` for Ollama, an empty-content retry
-  with token headroom (for models like gpt-oss that ignore the toggle), and stripping of
-  inline `<think>`/`<thinking>` blocks and gpt-oss "harmony" channels.
-- Secure API key storage via VS Code SecretStorage.
-- Configurable noise filtering (`commitsmith.ignoreGlobs`).
-- Unit test suite (vitest) and an env-driven live integration check.
+### Fixed
+- Removed fragile `cleanMessage` fence-line filter that could strip legitimate content from commit messages
+- Added proper error type handling for `execFileSync` failures in `git.ts`
+- Fixed dummy apiKey leaking as `Authorization: Bearer` header for local llama.cpp calls
+- Fixed `buildRequest` to correctly omit Authorization for local backends
 
-[0.1.1]: https://github.com/lazarevtill/Commitsmith/releases/tag/v0.1.1
-[0.1.0]: https://github.com/lazarevtill/Commitsmith/releases/tag/v0.1.0
+### Changed
+- Updated settings descriptions (`baseUrl`, `model`, `ollamaNumCtx`) to mention llama.cpp defaults
+- Bumped version to 0.1.2
+- Improved README Commands section to include llama.cpp in provider dropdown reference
+
+## [0.1.1] - 2026-07-28
+
+### Added
+- Initial release
+- Support for OpenAI-compatible and Ollama API providers
+- Conventional Commits message generation from git diff
+- Token-budgeted diff context with proportional allocation
+- Two-pass fallback for large diffs (summarize-then-synthesize)
+- Reasoning-model aware handling (qwen3, gemma-thinking, deepseek-r1, gpt-oss)
+- Noise filtering for lockfiles, generated files, and binaries

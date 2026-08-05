@@ -143,20 +143,47 @@ async function postJson(plan: RequestPlan, timeoutMs: number): Promise<unknown> 
     });
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
-      throw new Error(
+      throw new ProviderError(
         `Request timed out after ${Math.round(timeoutMs / 1000)}s. ` +
           `For local models this may be a cold start — try again.`,
+        0,
       );
     }
     const detail = err instanceof Error ? err.message : String(err);
-    throw new Error(`Network error contacting ${plan.url}: ${detail}`);
+    // Classify network errors for better user feedback.
+    let message: string;
+    if (/hostname|ENOTFOUND|getaddrinfo/i.test(detail)) {
+      message = `Could not resolve hostname for ${plan.url}. Check commitsmith.baseUrl.`;
+    } else if (/ECONNREFUSED/i.test(detail)) {
+      message = `Connection refused by ${plan.url}. Is the server running?`;
+    } else if (/ECONNRESET|ETIMEDOUT|EPIPE/i.test(detail)) {
+      message = `Connection to ${plan.url} was lost: ${detail}.`;
+    } else {
+      message = `Network error contacting ${plan.url}: ${detail}`;
+    }
+    throw new ProviderError(message, 0);
   } finally {
     clearTimeout(timer);
   }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new ProviderError(`HTTP ${res.status} ${res.statusText}: ${text.slice(0, 400)}`, res.status);
+    // Tailor the error message for common HTTP status codes.
+    let message: string;
+    if (res.status === 429) {
+      message =
+        `Rate limit exceeded (HTTP 429) for ${plan.url}. ` +
+        `Try again in a moment, or raise commitsmith.maxTokens to reduce request size.`;
+    } else if (res.status >= 500) {
+      message =
+        `Server error (HTTP ${res.status}) from ${plan.url}. ` +
+        `Check that your endpoint is running and healthy.`;
+    } else if (res.status === 401) {
+      message = `Authentication failed (HTTP 401) for ${plan.url}. Check your API key.`;
+    } else {
+      message = `HTTP ${res.status} ${res.statusText}: ${text.slice(0, 400)}`;
+    }
+    throw new ProviderError(message, res.status);
   }
   const data: unknown = await res.json();
   return data;

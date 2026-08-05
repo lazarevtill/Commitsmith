@@ -94,6 +94,73 @@ describe("buildRequest", () => {
   });
 });
 
+describe("callModel error handling", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubFetch(response: Partial<Response>) {
+    const fn = vi.fn(async () =>
+      ({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        text: async () => "",
+        json: async () => ({}),
+        ...response,
+      }) as unknown as Response,
+    );
+    vi.stubGlobal("fetch", fn);
+    return fn;
+  }
+
+  it("provides a helpful error for 429 rate limit", async () => {
+    stubFetch({ ok: false, status: 429, statusText: "Too Many Requests" });
+    await expect(callModel(base)).rejects.toThrow(/rate limit/i);
+  });
+
+  it("provides a helpful error for 500 server errors", async () => {
+    stubFetch({ ok: false, status: 500, statusText: "Internal Server Error" });
+    await expect(callModel(base)).rejects.toThrow(/server error/i);
+  });
+
+  it("provides a helpful error for 401 auth failures", async () => {
+    stubFetch({ ok: false, status: 401, statusText: "Unauthorized" });
+    await expect(callModel(base)).rejects.toThrow(/authentication failed/i);
+  });
+
+  it("classifies DNS errors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("getaddrinfo ENOTFOUND nonexistent.host");
+      }),
+    );
+    await expect(callModel(base)).rejects.toThrow(/could not resolve hostname/i);
+  });
+
+  it("classifies connection refused errors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("ECONNREFUSED ::1:8080");
+      }),
+    );
+    await expect(callModel(base)).rejects.toThrow(/connection refused/i);
+  });
+
+  it("classifies timeout errors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("fetch failed");
+      }),
+    );
+    // AbortError gets its own path; general errors fall through to generic.
+    await expect(callModel(base)).rejects.toThrow(/network error/i);
+  });
+});
+
 describe("callModel reasoning-model handling", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
