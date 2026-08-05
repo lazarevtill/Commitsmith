@@ -55,7 +55,9 @@ const llamaCppConfig: GenerationConfig = {
   api: "llama.cpp",
   baseUrl: LLAMACPP_HOST,
   model: LLAMACPP_MODEL,
-  apiKey: "llama.cpp",
+  // No dummy key — buildRequest correctly omits Authorization for llama.cpp
+  // when the key is empty, matching what resolveConfig produces locally.
+  apiKey: "",
 };
 
 const openaiConfig: GenerationConfig = {

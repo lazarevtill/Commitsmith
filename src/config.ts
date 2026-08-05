@@ -20,8 +20,13 @@ export async function resolveConfig(
   // Local endpoints (Ollama, llama.cpp, LM Studio) ignore the key but some
   // stacks require a non-empty one — supply a harmless dummy so a keyless
   // local call is never blocked.
+  // Local endpoints (Ollama, llama.cpp, LM Studio) ignore the key but some
+  // stacks require a non-empty one — supply a harmless dummy so a keyless
+  // local call is never blocked. Only set it for Ollama, since llama.cpp and
+  // local OpenAI-compatible servers correctly handle an empty key without
+  // leaking a fake Authorization header.
   if (!apiKey && !needsApiKey(api, baseUrl)) {
-    apiKey = api === "llama.cpp" ? "llama.cpp" : "ollama";
+    apiKey = api === "ollama" ? "ollama" : "";
   }
 
   return {
