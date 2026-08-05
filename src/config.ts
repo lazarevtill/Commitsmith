@@ -13,14 +13,15 @@ export async function resolveConfig(
   context: vscode.ExtensionContext,
 ): Promise<GenerationConfig> {
   const cfg = vscode.workspace.getConfiguration("commitsmith");
-  const api = cfg.get<"openai" | "ollama">("api", "openai");
+  const api = cfg.get<"openai" | "ollama" | "llama.cpp">("api", "openai");
   const baseUrl = cfg.get<string>("baseUrl", "https://api.openai.com/v1");
 
   let apiKey = (await context.secrets.get(API_KEY_SECRET)) ?? "";
-  // Local endpoints (Ollama, LM Studio) ignore the key but some stacks require a
-  // non-empty one — supply a harmless dummy so a keyless local call is never blocked.
+  // Local endpoints (Ollama, llama.cpp, LM Studio) ignore the key but some
+  // stacks require a non-empty one — supply a harmless dummy so a keyless
+  // local call is never blocked.
   if (!apiKey && !needsApiKey(api, baseUrl)) {
-    apiKey = "ollama";
+    apiKey = api === "llama.cpp" ? "llama.cpp" : "ollama";
   }
 
   return {

@@ -77,4 +77,18 @@ describe("generateMessage", () => {
     expect(result.strategy).toBe("single");
     expect(call).toHaveBeenCalledTimes(1);
   });
+
+  it("works with llama.cpp API mode", async () => {
+    const call = vi.fn(async (p: CallParams) => {
+      expect(p.api).toBe("llama.cpp");
+      return "feat: add thing";
+    });
+    const result = await generateMessage(
+      [file({ path: "src/a.ts" })],
+      cfg({ api: "llama.cpp", baseUrl: "http://localhost:8080/v1", apiKey: "" }),
+      call,
+    );
+    expect(result.strategy).toBe("single");
+    expect(result.message).toBe("feat: add thing");
+  });
 });

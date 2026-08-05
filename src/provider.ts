@@ -2,7 +2,7 @@
 import type { ChatMessage } from "./prompt";
 
 export interface CallParams {
-  api: "openai" | "ollama";
+  api: "openai" | "ollama" | "llama.cpp";
   baseUrl: string;
   model: string;
   apiKey: string;
@@ -88,7 +88,9 @@ interface RequestOverrides {
 /** Build the endpoint URL, headers, and body for the configured backend. */
 export function buildRequest(params: CallParams, overrides: RequestOverrides = {}): RequestPlan {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (params.apiKey) {
+  // Only remote OpenAI-compatible endpoints need an Authorization header.
+  // Ollama and llama.cpp are local runtimes with no auth.
+  if (params.api === "openai" && params.apiKey) {
     headers.Authorization = `Bearer ${params.apiKey}`;
   }
   const predict = overrides.numPredict ?? params.maxTokens;

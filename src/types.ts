@@ -39,7 +39,7 @@ export interface DiffContext {
 
 /** Resolved runtime configuration for a generation. */
 export interface GenerationConfig {
-  api: "openai" | "ollama";
+  api: "openai" | "ollama" | "llama.cpp";
   baseUrl: string;
   model: string;
   apiKey: string;

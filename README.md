@@ -1,8 +1,8 @@
 # Commitsmith
 
 **Forge [Conventional Commits](https://www.conventionalcommits.org/) messages from
-your git diff with one click** — using **any OpenAI-compatible API** or a **fully
-local Ollama model**. No telemetry, no server, no code indexing.
+your git diff with one click** — using **any OpenAI-compatible API**, a **local
+Ollama model**, or **llama.cpp**. No telemetry, no server, no code indexing.
 
 Works in **VS Code** and **Cursor**.
 
@@ -56,8 +56,8 @@ Then reload the window.
 ## Setup
 
 Run **Commitsmith: Select API Provider** from the Command Palette (or the Source Control
-`⋯` menu) to choose between Ollama and an OpenAI-compatible endpoint — or set it in
-Settings directly.
+`⋯` menu) to choose between Ollama, llama.cpp, and an OpenAI-compatible endpoint — or set
+it in Settings directly.
 
 ### Ollama (local, private — no API key)
 
@@ -70,6 +70,25 @@ Settings directly.
 
 Commitsmith calls Ollama's `/api/chat` with `num_ctx` (default 8192) so large diffs are
 **not** silently truncated — a common failure of the OpenAI-compat `/v1` path on Ollama.
+
+### llama.cpp (local, private — no API key)
+
+Run `llama-server` (from [llama.cpp](https://github.com/ggerganov/llama.cpp)) with your
+model:
+
+```bash
+llama-server -m path/to/model.gguf --port 8080
+```
+
+```jsonc
+// settings.json
+"commitsmith.api": "llama.cpp",
+"commitsmith.baseUrl": "http://localhost:8080/v1",
+"commitsmith.model": "your-model-name"
+```
+
+llama.cpp exposes an **OpenAI-compatible** `/v1/chat/completions` endpoint — no API key
+required. Set `commitsmith.model` to the model name the server is running (or `default`)
 
 ### OpenAI-compatible (OpenAI, OpenRouter, LM Studio, Open WebUI, …)
 
@@ -87,7 +106,7 @@ For Open WebUI the base URL is `https://your-host/api`. Local OpenAI-compatible 
 
 | Setting | Default | Purpose |
 |---|---|---|
-| `commitsmith.api` | `openai` | `openai` (`/chat/completions`) or `ollama` (`/api/chat` + `num_ctx`) |
+| `commitsmith.api` | `openai` | `openai` (`/chat/completions`), `ollama` (`/api/chat` + `num_ctx`), or `llama.cpp` (`/v1/chat/completions`) |
 | `commitsmith.baseUrl` | `https://api.openai.com/v1` | Endpoint base URL |
 | `commitsmith.model` | `gpt-4o-mini` | Model name |
 | `commitsmith.temperature` | `0.15` | Sampling temperature |

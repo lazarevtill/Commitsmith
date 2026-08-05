@@ -69,14 +69,17 @@ async function generate(context: vscode.ExtensionContext, arg?: unknown): Promis
   if (!config.apiKey && needsApiKey(config.api, config.baseUrl)) {
     const choice = await vscode.window.showErrorMessage(
       "Commitsmith: no API key set for a remote OpenAI-compatible endpoint. " +
-        "If you meant to use a local Ollama server, switch the provider instead.",
+        "If you meant to use a local Ollama or llama.cpp server, switch the provider instead.",
       "Set API Key",
       "Use Ollama",
+      "Use llama.cpp",
     );
     if (choice === "Set API Key") {
       await setApiKey(context);
     } else if (choice === "Use Ollama") {
       await setProvider("ollama");
+    } else if (choice === "Use llama.cpp") {
+      await setProvider("llama.cpp");
     }
     return;
   }
@@ -155,12 +158,18 @@ async function clearApiKey(context: vscode.ExtensionContext): Promise<void> {
 /** Dropdown to choose the API provider. Ollama needs no API key. */
 async function selectProvider(): Promise<void> {
   const current = vscode.workspace.getConfiguration("commitsmith").get<string>("api", "openai");
-  const items: (vscode.QuickPickItem & { value: "openai" | "ollama" })[] = [
+  const items: (vscode.QuickPickItem & { value: "openai" | "ollama" | "llama.cpp" })[] = [
     {
       value: "ollama",
       label: "Ollama",
       description: current === "ollama" ? "current" : undefined,
       detail: "Local Ollama server — no API key required. Calls {baseUrl}/api/chat.",
+    },
+    {
+      value: "llama.cpp",
+      label: "llama.cpp",
+      description: current === "llama.cpp" ? "current" : undefined,
+      detail: "Local llama.cpp server — no API key required. Calls {baseUrl}/v1/chat/completions.",
     },
     {
       value: "openai",
@@ -180,7 +189,7 @@ async function selectProvider(): Promise<void> {
 }
 
 /** Persist the chosen provider and confirm to the user. */
-async function setProvider(api: "openai" | "ollama"): Promise<void> {
+async function setProvider(api: "openai" | "ollama" | "llama.cpp"): Promise<void> {
   const cfg = vscode.workspace.getConfiguration("commitsmith");
   const target = vscode.workspace.workspaceFolders?.length
     ? vscode.ConfigurationTarget.Workspace
@@ -190,6 +199,12 @@ async function setProvider(api: "openai" | "ollama"): Promise<void> {
     void vscode.window.showInformationMessage(
       "Commitsmith: provider set to Ollama (no API key needed). " +
         "Set commitsmith.baseUrl to your Ollama host, e.g. http://localhost:11434.",
+    );
+  } else if (api === "llama.cpp") {
+    void vscode.window.showInformationMessage(
+      "Commitsmith: provider set to llama.cpp (no API key needed). " +
+        "Run `llama-server -m your-model.gguf --port 8080`, then set " +
+        "commitsmith.baseUrl to http://localhost:8080/v1.",
     );
   } else {
     void vscode.window.showInformationMessage(

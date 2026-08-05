@@ -232,7 +232,9 @@ export function stripReasoning(input: string): string {
   text = text.replace(/<think>[\s\S]*?<\/think>/gi, "");
   text = text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, "");
   // Remove an unclosed leading think block (budget ran out mid-thought).
-  text = text.replace(/<think(ing)?>[\s\S]*$/i, (m) => (/<\/think/i.test(m) ? m : ""));
+  text = text.replace(/<think(ing)?>[\s\S]*$/i, (m) =>
+    /<\/think/i.test(m) ? m : "",
+  );
 
   return text.trim();
 }
@@ -249,12 +251,6 @@ export function cleanMessage(raw: string): string {
   if (fence) {
     text = fence[1].trim();
   }
-  // Remove any stray fence lines.
-  text = text
-    .split("\n")
-    .filter((l) => !l.trim().startsWith("```"))
-    .join("\n")
-    .trim();
 
   // Strip a leading label like "Commit message:".
   text = text.replace(/^(commit message|message)\s*:\s*/i, "").trim();

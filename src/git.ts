@@ -6,12 +6,23 @@ import type { DiffSelection, FileChange } from "./types";
 export type GitRunner = (args: string[]) => string;
 
 function makeRunner(cwd: string): GitRunner {
-  return (args) =>
-    execFileSync("git", args, {
-      cwd,
-      encoding: "utf8",
-      maxBuffer: 64 * 1024 * 1024,
-    });
+  return (args): string => {
+    try {
+      return execFileSync("git", args, {
+        cwd,
+        encoding: "utf8",
+        maxBuffer: 64 * 1024 * 1024,
+      });
+    } catch (err) {
+      // `execFileSync` throws `ChildProcessError` on failure; preserve the
+      // original message so the user sees the actual git error, not a generic
+      // "not a git repository" wrapper.
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error(String(err));
+    }
+  };
 }
 
 /** Git may C-quote paths with special characters; unwrap the simple case. */

@@ -9,10 +9,17 @@ export function isLocalUrl(url: string): boolean {
 }
 
 /**
- * Whether a request actually needs an API key. Ollama never does — it's a local
- * runtime with no auth. Neither does any local/private-network endpoint (LM Studio,
- * a self-hosted box). Only a remote OpenAI-compatible endpoint requires one.
+ * Whether a request actually needs an API key. Ollama and llama.cpp never do
+ * — they are local runtimes with no auth. Neither does any local/private-network
+ * endpoint (LM Studio, a self-hosted box). Only a remote OpenAI-compatible
+ * endpoint requires one.
  */
-export function needsApiKey(api: "openai" | "ollama", baseUrl: string): boolean {
-  return api === "openai" && !isLocalUrl(baseUrl);
+export function needsApiKey(
+  api: "openai" | "ollama" | "llama.cpp",
+  baseUrl: string,
+): boolean {
+  if (api === "openai" && !isLocalUrl(baseUrl)) {
+    return true;
+  }
+  return false;
 }

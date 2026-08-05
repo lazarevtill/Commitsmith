@@ -10,13 +10,13 @@ import {
 
 const base: CallParams = {
   api: "openai",
-  baseUrl: "https://api.openai.com/v1",
-  model: "gpt-4o-mini",
   apiKey: "sk-test",
-  messages: [{ role: "user", content: "hi" }],
+  baseUrl: "https://api.openai.com/v1",
   maxTokens: 200,
-  temperature: 0.15,
+  messages: [{ role: "user", content: "hi" }],
+  model: "gpt-4o-mini",
   ollamaNumCtx: 8192,
+  temperature: 0.15,
   timeoutMs: 90000,
 };
 
@@ -68,6 +68,14 @@ describe("buildRequest", () => {
   it("applies a num_predict override", () => {
     const plan = buildRequest({ ...base, api: "ollama" }, { numPredict: 4096 });
     expect((plan.body as any).options.num_predict).toBe(4096);
+  });
+
+  it("targets /chat/completions with max_tokens for llama.cpp (same as openai)", () => {
+    const plan = buildRequest({ ...base, api: "llama.cpp", baseUrl: "http://localhost:8080/v1" });
+    expect(plan.url).toBe("http://localhost:8080/v1/chat/completions");
+    expect(plan.headers.Authorization).toBeUndefined();
+    expect((plan.body as any).max_tokens).toBe(200);
+    expect((plan.body as any).options).toBeUndefined();
   });
 
   it("trims trailing slashes from the base URL", () => {

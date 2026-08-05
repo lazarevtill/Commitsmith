@@ -83,14 +83,16 @@
           "type": "string",
           "enum": [
             "openai",
-            "ollama"
+            "ollama",
+            "llama.cpp"
           ],
           "enumDescriptions": [
             "OpenAI-compatible. Calls {baseUrl}/chat/completions (OpenAI, OpenRouter, LM Studio, Open WebUI). Requires an API key for remote endpoints.",
-            "Ollama. Calls {baseUrl}/api/chat so num_ctx can be set (avoids silent prompt truncation). No API key required."
+            "Ollama. Calls {baseUrl}/api/chat so num_ctx can be set (avoids silent prompt truncation). No API key required.",
+            "llama.cpp. Calls {baseUrl}/v1/chat/completions (OpenAI-compatible). No API key required. Run `llama-server -m your-model.gguf --port 8080` and set baseUrl to http://localhost:8080/v1."
           ],
           "default": "openai",
-          "markdownDescription": "API protocol. `openai` calls `{baseUrl}/chat/completions` (OpenAI, OpenRouter, LM Studio, Open WebUI). `ollama` calls `{baseUrl}/api/chat` so the context window (`num_ctx`) can be set — required to avoid silent prompt truncation on Ollama.\n\nTip: run **Commitsmith: Select API Provider** from the Command Palette or the Source Control `⋯` menu to switch quickly. Ollama needs no API key."
+          "markdownDescription": "API protocol. `openai` calls `{baseUrl}/chat/completions` (OpenAI, OpenRouter, LM Studio, Open WebUI). `ollama` calls `{baseUrl}/api/chat` so the context window (`num_ctx`) can be set — required to avoid silent prompt truncation on Ollama. `llama.cpp` calls `{baseUrl}/v1/chat/completions` (OpenAI-compatible).\n\nTip: run **Commitsmith: Select API Provider** from the Command Palette or the Source Control `⋯` menu to switch quickly. Ollama and llama.cpp need no API key."
         },
         "commitsmith.baseUrl": {
           "type": "string",
